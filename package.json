@@ -1,0 +1,33 @@
+{
+  "name": "bible-reference-range",
+  "version": "1.0.0",
+  "main": "dist",
+  "repository": "https://github.com/unfoldingWord/translation-helps-rcl.git",
+  "author": "mannycolon <colonmanuel7@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepublishOnly": "rm -rf ./dist && babel ./src --out-dir ./dist -s inline",
+    "postpublish": "git tag v$npm_package_version && git push origin v$npm_package_version"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.1",
+    "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
+    "babel-jest": "^27.3.1",
+    "babel-loader": "^8.2.2",
+    "jest": "^27.3.1",
+    "prettier": "^2.1.2",
+    "deep-equal": "^2.0.5",
+    "webpack": "4.44.0"
+  },
+  "dependencies": {
+  }
+}
