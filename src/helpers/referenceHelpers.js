@@ -1,16 +1,16 @@
 // list of possible hyphen and dash characters used for range separator
 const RANGE_SEPARATORS = [
-  '-', // HYPHEN-MINUS
-  '\u00AD', // SOFT HYPHEN
-  '\u2010', // HYPHEN
-  '\u2011', // NON-BREAKING HYPHEN
-  '\u2012', // FIGURE DASH
-  '\u2013', // EN DASH
-  '\u2014', // EM DASH
-];
-const ZERO_WIDTH_SPACE = '\u200B';
-const NO_BREAK_SPACE = '\u00A0';
-const ZERO_WIDTH_NO_BREAK_SPACE = '\uFEFF';
+    '-', // HYPHEN-MINUS
+    '\u00AD', // SOFT HYPHEN
+    '\u2010', // HYPHEN
+    '\u2011', // NON-BREAKING HYPHEN
+    '\u2012', // FIGURE DASH
+    '\u2013', // EN DASH
+    '\u2014', // EM DASH
+  ];
+  const ZERO_WIDTH_SPACE = '\u200B';
+  const NO_BREAK_SPACE = '\u00A0';
+  const ZERO_WIDTH_NO_BREAK_SPACE = '\uFEFF';
 
 /**
  * takes a reference and splits into individual verses or verse spans.
@@ -19,184 +19,184 @@ const ZERO_WIDTH_NO_BREAK_SPACE = '\uFEFF';
  * @return {[{chapter, verse, endChapter, endVerse}]}
  */
  export function parseReferenceToList(ref) {
-  try {
-    let verseChunks = [];
-    const refChunks = ref.split(';');
-    let lastChapter = 1;
-
-    for (const refChunk of refChunks) {
-      if (!refChunk) {
-        continue;
-      }
-
-      const verseParts = refChunk.split(',');
-      let {
-        chapter,
-        verse,
-        foundChapterVerse,
-      } = getChapterVerse(verseParts[0]);
-
-      if (!foundChapterVerse) {
-        chapter = verse;
-        verse = null;
-      }
-
-      lastChapter = chapter;
-
-      const range = getRange(verse);
-
-      verseChunks.push({
-        ...range,
-        chapter,
-      });
-
-      if (range.endChapter) {
-        lastChapter = range.endChapter;
-      }
-
-      for (let i = 1; i < verseParts.length; i++) {
-        const versePart = verseParts[i];
-
-        if (!versePart) {
+    try {
+      let verseChunks = [];
+      const refChunks = ref.split(';');
+      let lastChapter = 1;
+  
+      for (const refChunk of refChunks) {
+        if (!refChunk) {
           continue;
         }
-
+  
+        const verseParts = refChunk.split(',');
         let {
-          chapter: chapter_,
-          verse: verse_,
+          chapter,
+          verse,
           foundChapterVerse,
-        } = getChapterVerse(versePart);
-
-        if (foundChapterVerse) {
-          chapter = chapter_;
-          verse = verse_;
-          lastChapter = chapter;
-        } else {
-          chapter = lastChapter;
-          verse = verse_;
+        } = getChapterVerse(verseParts[0]);
+  
+        if (!foundChapterVerse) {
+          chapter = verse;
+          verse = null;
         }
-
+  
+        lastChapter = chapter;
+  
         const range = getRange(verse);
-
-        if (range.endVerse) {
-          verseChunks.push({
-            ...range,
-            chapter,
-          });
-
-          if (range.endChapter) {
-            lastChapter = range.endChapter;
+  
+        verseChunks.push({
+          ...range,
+          chapter,
+        });
+  
+        if (range.endChapter) {
+          lastChapter = range.endChapter;
+        }
+  
+        for (let i = 1; i < verseParts.length; i++) {
+          const versePart = verseParts[i];
+  
+          if (!versePart) {
+            continue;
           }
-        } else { // not range
-          verseChunks.push({
-            verse: range.verse,
-            chapter,
-          });
+  
+          let {
+            chapter: chapter_,
+            verse: verse_,
+            foundChapterVerse,
+          } = getChapterVerse(versePart);
+  
+          if (foundChapterVerse) {
+            chapter = chapter_;
+            verse = verse_;
+            lastChapter = chapter;
+          } else {
+            chapter = lastChapter;
+            verse = verse_;
+          }
+  
+          const range = getRange(verse);
+  
+          if (range.endVerse) {
+            verseChunks.push({
+              ...range,
+              chapter,
+            });
+  
+            if (range.endChapter) {
+              lastChapter = range.endChapter;
+            }
+          } else { // not range
+            verseChunks.push({
+              verse: range.verse,
+              chapter,
+            });
+          }
         }
       }
+      return verseChunks;
+    } catch (e) {
+      console.warn(`parseReferenceToList() - invalid ref: "${ref}"`, e);
     }
-    return verseChunks;
-  } catch (e) {
-    console.warn(`parseReferenceToList() - invalid ref: "${ref}"`, e);
+    return null;
   }
-  return null;
-}
-
-/**
- * conver array of Reference chunks to reference string
- * @param {array} chunks
- * @return {string}
- */
-export function convertReferenceChunksToString(chunks) {
-  let result = '';
-
-  try {
-    let lastChapter = null;
-    let lastChunk = null;
-
-    if (Array.isArray(chunks)) {
-      for (const chunk of chunks) {
-        if (chunk.endChapter) {
-          if (result) {
-            result += ';';
-          }
-          result += `${chunk.chapter}:${chunk.verse}-${chunk.endChapter}:${chunk.endVerse}`;
-          lastChapter = chunk.endChapter;
-        } else {
-          if ((lastChapter !== chunk.chapter) || (lastChunk && lastChunk.endChapter)) {
+  
+  /**
+   * conver array of Reference chunks to reference string
+   * @param {array} chunks
+   * @return {string}
+   */
+  export function convertReferenceChunksToString(chunks) {
+    let result = '';
+  
+    try {
+      let lastChapter = null;
+      let lastChunk = null;
+  
+      if (Array.isArray(chunks)) {
+        for (const chunk of chunks) {
+          if (chunk.endChapter) {
             if (result) {
               result += ';';
             }
-            result += `${chunk.chapter}:`;
-            lastChapter = chunk.chapter;
-          } else { // same chapter
-            if (result) {
-              result += ',';
+            result += `${chunk.chapter}:${chunk.verse}-${chunk.endChapter}:${chunk.endVerse}`;
+            lastChapter = chunk.endChapter;
+          } else {
+            if ((lastChapter !== chunk.chapter) || (lastChunk && lastChunk.endChapter)) {
+              if (result) {
+                result += ';';
+              }
+              result += `${chunk.chapter}:`;
+              lastChapter = chunk.chapter;
+            } else { // same chapter
+              if (result) {
+                result += ',';
+              }
+            }
+            result += `${chunk.verse}`;
+  
+            if (chunk.endVerse) {
+              result += `-${chunk.endVerse}`;
             }
           }
-          result += `${chunk.verse}`;
-
-          if (chunk.endVerse) {
-            result += `-${chunk.endVerse}`;
-          }
+          lastChunk = chunk;
         }
-        lastChunk = chunk;
+      }
+    } catch (e) {
+      console.warn(`convertReferenceChunksToString() - invalid chunks: "${JSON.stringify(chunks)}"`);
+    }
+    return result;
+  }
+  
+  /**
+   * check to see if single reference
+   * @param {array} chunks
+   * @param {string} refStr
+   * @return {{chapter, verse, verseStr}}
+   */
+  export function characterizeReference(chunks, refStr) {
+    const results = {};
+  
+    if (chunks && chunks.length && refStr) {
+      let multiverse = false;
+      let verseStr = null;
+      results.chapter = chunks[0].chapter;
+      results.verse = chunks[0].verse;
+      const pos = refStr.indexOf(':');
+  
+      if (pos >= 0) {
+        verseStr = refStr.substring(pos + 1);
+      }
+  
+      if (chunks.length > 1) {
+        multiverse = true;
+      } else if (chunks[0].endVerse) {
+        multiverse = true;
+      }
+  
+      if (multiverse) {
+        results.verseStr = verseStr;
+        results.verse = verseStr;
       }
     }
-  } catch (e) {
-    console.warn(`convertReferenceChunksToString() - invalid chunks: "${JSON.stringify(chunks)}"`);
+    return results;
   }
-  return result;
-}
-
-/**
- * check to see if single reference
- * @param {array} chunks
- * @param {string} refStr
- * @return {{chapter, verse, verseStr}}
- */
-export function characterizeReference(chunks, refStr) {
-  const results = {};
-
-  if (chunks && chunks.length && refStr) {
-    let multiverse = false;
-    let verseStr = null;
-    results.chapter = chunks[0].chapter;
-    results.verse = chunks[0].verse;
-    const pos = refStr.indexOf(':');
-
-    if (pos >= 0) {
-      verseStr = refStr.substring(pos + 1);
-    }
-
-    if (chunks.length > 1) {
-      multiverse = true;
-    } else if (chunks[0].endVerse) {
-      multiverse = true;
-    }
-
-    if (multiverse) {
-      results.verseStr = verseStr;
-      results.verse = verseStr;
-    }
+  
+  /**
+   * takes a reference and splits into individual verses or verse spans for cleanup.  Then recombines the cleaned up references to a string.
+   * @param {string} ref - reference in format such as:
+   *   “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
+   * @return {array|string}
+   */
+  export function cleanupReference(ref) {
+    const chunks = parseReferenceToList(ref);
+    const cleanedRef = convertReferenceChunksToString(chunks);
+  
+    let results = characterizeReference(chunks, cleanedRef);
+    results.cleanedRef = cleanedRef;
+    return results;
   }
-  return results;
-}
-
-/**
- * takes a reference and splits into individual verses or verse spans for cleanup.  Then recombines the cleaned up references to a string.
- * @param {string} ref - reference in format such as:
- *   “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @return {array|string}
- */
-export function cleanupReference(ref) {
-  const chunks = parseReferenceToList(ref);
-  const cleanedRef = convertReferenceChunksToString(chunks);
-
-  let results = characterizeReference(chunks, cleanedRef);
-  results.cleanedRef = cleanedRef;
-  return results;
-}
 
   /**
  * splits verse list into individual verses
@@ -204,147 +204,150 @@ export function cleanupReference(ref) {
  * @return {[number]}
  */
 export function getVerseList(verseStr) {
-  const verses = verseStr.toString().split(',');
-  return verses;
-}
-
-/**
- * test if verse is valid verse span string
- * @param {string|number} verse
- * @return {boolean}
- */
-export function isVerseSpan(verse) {
-  const isSpan = (typeof verse === 'string') && verse.includes('-');
-  return isSpan;
-}
-
-/**
- * test if verse is valid verse list (verse numbers separated by commas)
- * @param {string|number} verse
- * @return {boolean}
- */
-export function isVerseList(verse) {
-  const isList = (typeof verse === 'string') && verse.includes(',');
-  return isList;
-}
-
-/**
- * test if verse is valid verse span or verse list
- * @param {string|number} verse
- * @return {boolean}
- */
-export function isVerseSet(verse) {
-  const isSet = isVerseSpan(verse) || isVerseList(verse);
-  return isSet;
-}
-
-/**
- * get verse range from span
- * @param {string} verseSpan
- * @return {{high: number, low: number}}
- */
-export function getVerseSpanRange(verseSpan) {
-  let [low, high] = verseSpan.split('-');
-
-  if (low && high) {
-    low = parseInt(low, 10);
-    high = parseInt(high, 10);
-
-    if ((low > 0) && (high >= low)) {
-      return { low, high };
+    const verses = verseStr.toString().split(',');
+    return verses;
+  }
+  
+  /**
+   * test if verse is valid verse span string
+   * @param {string|number} verse
+   * @return {boolean}
+   */
+  export function isVerseSpan(verse) {
+    const isSpan = (typeof verse === 'string') && verse.includes('-');
+    return isSpan;
+  }
+  
+  /**
+   * test if verse is valid verse list (verse numbers separated by commas)
+   * @param {string|number} verse
+   * @return {boolean}
+   */
+  export function isVerseList(verse) {
+    const isList = (typeof verse === 'string') && verse.includes(',');
+    return isList;
+  }
+  
+  /**
+   * test if verse is valid verse span or verse list
+   * @param {string|number} verse
+   * @return {boolean}
+   */
+  export function isVerseSet(verse) {
+    const isSet = isVerseSpan(verse) || isVerseList(verse);
+    return isSet;
+  }
+  
+  /**
+   * get verse range from span
+   * @param {string} verseSpan
+   * @return {{high: number, low: number}}
+   */
+  export function getVerseSpanRange(verseSpan) {
+    let [low, high] = verseSpan.split('-');
+  
+    if (low && high) {
+      low = parseInt(low, 10);
+      high = parseInt(high, 10);
+  
+      if ((low > 0) && (high >= low)) {
+        return { low, high };
+      }
     }
+    return {};
   }
-  return {};
-}
-
-/**
- * make sure that chapter and verse are lower than or equal to end chapter and verse
- * @param {int} chapter
- * @param {int} verse
- * @param {int} endChapter
- * @param {int} endVerse
- * @returns {boolean}
- */
-export function isVerseInRange(chapter, verse, endChapter, endVerse) {
-  if (chapter < endChapter) {
-    return true;
-  }
-
-  if (chapter === endChapter) {
-    if (verse <= endVerse) {
+  
+  /**
+   * make sure that chapter and verse are lower than or equal to end chapter and verse
+   * @param {int} chapter
+   * @param {int} verse
+   * @param {int} endChapter
+   * @param {int} endVerse
+   * @returns {boolean}
+   */
+  export function isVerseInRange(chapter, verse, endChapter, endVerse) {
+    if (chapter < endChapter) {
       return true;
     }
-  }
-  return false;
-}
   
+    if (chapter === endChapter) {
+      if (verse <= endVerse) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+
 /**
  * check if verse range
  * @param ref
  * @returns {{verse}}
  */
 function getRange(ref) {
-  const refType = typeof(ref);
-  const isNumber = refType === 'number';
-
-  if (!isNumber) {
-    const pos = getRangeSeparator(ref);
-    const foundRange = pos >= 0;
-
-    if (foundRange) {
-      const start = toIntIfValid(ref.substring(0, pos));
-      const endStr = ref.substring(pos + 1);
-
-      let {
-        chapter,
-        verse,
-        foundChapterVerse,
-      } = getChapterVerse(endStr);
-
-      if (foundChapterVerse) {
-        return {
-          verse: start,
-          endChapter: chapter,
-          endVerse: verse,
-        };
-      } else {
-        return {
-          verse: start,
-          endVerse: toIntIfValid(endStr),
-        };
+    const refType = typeof(ref);
+    const isNumber = refType === 'number';
+  
+    if (!isNumber) {
+      const pos = getRangeSeparator(ref);
+      const foundRange = pos >= 0;
+  
+      if (foundRange) {
+        const start = toIntIfValid(ref.substring(0, pos));
+        const endStr = ref.substring(pos + 1);
+  
+        let {
+          chapter,
+          verse,
+          foundChapterVerse,
+        } = getChapterVerse(endStr);
+  
+        if (foundChapterVerse) {
+          return {
+            verse: start,
+            endChapter: chapter,
+            endVerse: verse,
+          };
+        } else {
+          return {
+            verse: start,
+            endVerse: toIntIfValid(endStr),
+          };
+        }
       }
     }
-  }
-
-  return { verse: ref };
-}
-
-/**
- * parse ref to see if chapter:verse
- * @param ref
- * @returns {{chapter: string, foundChapterVerse: boolean, verse: string}}
- */
-function getChapterVerse(ref) {
-  if (typeof ref !== 'string') {
+  
     return { verse: ref };
   }
-
-  const pos = (ref || '').indexOf(':');
-  const foundChapterVerse = pos >= 0;
-  let chapter, verse;
-
-  if (foundChapterVerse) {
-    chapter = toIntIfValid(ref.substring(0, pos));
-    verse = toIntIfValid(ref.substring(pos + 1));
-  } else {
-    verse = toIntIfValid(ref);
+  
+  /**
+   * parse ref to see if chapter:verse
+   * @param ref
+   * @returns {{chapter: string, foundChapterVerse: boolean, verse: string}}
+   */
+  function getChapterVerse(ref) {
+    if (typeof ref !== 'string') {
+      return { verse: ref };
+    }
+  
+    const pos = (ref || '').indexOf(':');
+    const foundChapterVerse = pos >= 0;
+    let chapter, verse;
+  
+    if (foundChapterVerse) {
+      chapter = toIntIfValid(ref.substring(0, pos));
+      verse = toIntIfValid(ref.substring(pos + 1));
+    } else {
+      verse = toIntIfValid(ref);
+    }
+    return {
+      chapter,
+      verse,
+      foundChapterVerse,
+    };
   }
-  return {
-    chapter,
-    verse,
-    foundChapterVerse,
-  };
-}
 
 /**
  * convert value to int if string, otherwise just return value
@@ -352,47 +355,47 @@ function getChapterVerse(ref) {
  * @returns {int}
  */
 export function toInt(value) {
-  return (typeof value === 'string') ? parseInt(value, 10) : value;
-}
-
-/**
- * return integer of value (string or int) if valid, otherwise just return value
- * @param {string|int} value
- * @returns {int|int}
- */
-export function toIntIfValid(value) {
-  if (typeof value === 'string') {
-    const pos = getRangeSeparator(value);
-
-    if (pos >= 0) {
-      return value;
-    }
-
-    const intValue = toInt(value);
-
-    if (!isNaN(intValue)) {
-      return intValue;
-    }
+    return (typeof value === 'string') ? parseInt(value, 10) : value;
   }
-
-  return value;
-}
   
-/**
- * look for possible dash and hyphen character to see if versePart is a verse range
- * @param {string} versePart
- * @return {number} position of dash or hyphen found, or -1 if not found
- */
-function getRangeSeparator(versePart) {
-  for (const separator of RANGE_SEPARATORS) {
-    const pos = versePart.indexOf(separator);
-
-    if (pos >= 0) {
-      return pos;
+  /**
+   * return integer of value (string or int) if valid, otherwise just return value
+   * @param {string|int} value
+   * @returns {int|int}
+   */
+  export function toIntIfValid(value) {
+    if (typeof value === 'string') {
+      const pos = getRangeSeparator(value);
+  
+      if (pos >= 0) {
+        return value;
+      }
+  
+      const intValue = toInt(value);
+  
+      if (!isNaN(intValue)) {
+        return intValue;
+      }
     }
+  
+    return value;
   }
-  return -1;
-}
+  
+  /**
+   * look for possible dash and hyphen character to see if versePart is a verse range
+   * @param {string} versePart
+   * @return {number} position of dash or hyphen found, or -1 if not found
+   */
+  function getRangeSeparator(versePart) {
+    for (const separator of RANGE_SEPARATORS) {
+      const pos = versePart.indexOf(separator);
+  
+      if (pos >= 0) {
+        return pos;
+      }
+    }
+    return -1;
+  }
 
 /**
  * check if verse is within a verse range (e.g. 2-4)
