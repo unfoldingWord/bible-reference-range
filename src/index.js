@@ -1,6 +1,7 @@
 import * as referenceHelpers from './helpers/referenceHelpers';
 export { referenceHelpers };
-export { 
-    parseReferenceToList,
-    cleanupReference
+export {
+  cleanupReference,
+  getVerses,
+  parseReferenceToList,
  } from './helpers/referenceHelpers'
