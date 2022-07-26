@@ -1,4 +1,3 @@
-
 // list of possible hyphen and dash characters used for range separator
 const RANGE_SEPARATORS = [
     '-', // HYPHEN-MINUS
@@ -12,7 +11,6 @@ const RANGE_SEPARATORS = [
   const ZERO_WIDTH_SPACE = '\u200B';
   const NO_BREAK_SPACE = '\u00A0';
   const ZERO_WIDTH_NO_BREAK_SPACE = '\uFEFF';
-
 
 /**
  * takes a reference and splits into individual verses or verse spans.
@@ -200,8 +198,6 @@ const RANGE_SEPARATORS = [
     return results;
   }
 
-
-
   /**
  * splits verse list into individual verses
  * @param {string} verseStr
@@ -353,8 +349,6 @@ function getRange(ref) {
     };
   }
 
-
-
 /**
  * convert value to int if string, otherwise just return value
  * @param {string|int} value
@@ -402,3 +396,106 @@ export function toInt(value) {
     }
     return -1;
   }
+
+/**
+ * check if verse is within a verse range (e.g. 2-4)
+ * @param {object} chapterData - indexed by verse ref
+ * @param {number} verse - verse to match
+ * @param {number} chapter - current chapter
+ * @returns {{verseData, verse: number, foundVerseKey, nextVerse}}
+ */
+function findVerseInVerseRange(chapterData, verse, chapter) {
+  const verseKeys = Object.keys(chapterData);
+  let foundVerseKey, verseData, verseKey, nextVerse;
+
+  for (verseKey of verseKeys) {
+    if (isVerseSpan(verseKey)) {
+      const {low, high} = getVerseSpanRange(verseKey);
+
+      if ((verse >= low) && (verse <= high)) {
+        verseData = chapterData[verseKey];
+        foundVerseKey = verse;
+        nextVerse = high + 1; // move to verse after range
+        break;
+      }
+    }
+  }
+  return {
+    foundVerseKey,
+    verse: verseKey,
+    verseData,
+    nextVerse,
+  };
+}
+
+/**
+ * find all verses contained in ref, returns array of references
+ * @param {object} bookData - indexed by chapter and then verse ref
+ * @param {string} ref - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
+ * @returns {[{chapter, verse, verseData}]}
+ */
+export function getVerses(bookData, ref) {
+  const verses = [];
+  const chunks = parseReferenceToList(ref);
+  let chapterData, verseData;
+
+  for (const chunk of chunks) {
+    if (!chunk.endVerse) {
+      const chapter = chunk.chapter;
+      chapterData = bookData[chapter];
+      let verseKey = chunk.verse;
+      verseData = chapterData && chapterData[verseKey];
+
+      if (!verseData && chapterData) { // if verse doesn't exist, check for verse spans in chapter data
+        const __ret = findVerseInVerseRange(chapterData, verseKey, chapter);
+
+        if (__ret.foundVerseKey) {
+          verseKey = __ret.verse;
+          verseData = __ret.verseData;
+        }
+      }
+
+      verses.push({
+        chapter,
+        verse: verseKey,
+        verseData,
+      });
+    } else { // handle range
+      let chapter = chunk.chapter;
+      let verse = chunk.verse;
+      const endVerse = chunk.endVerse;
+      const endChapter = chunk.endChapter || chapter;
+
+      while (isVerseInRange(chapter, verse, endChapter, endVerse)) {
+        chapterData = bookData[chapter];
+        verseData = chapterData && chapterData[verse];
+        let verseKey = verse;
+
+        if (!verseData && chapterData) { // if verse doesn't exist, check for verse spans in chapter data
+          const __ret = findVerseInVerseRange(chapterData, verseKey, chapter);
+
+          if (__ret.foundVerseKey) {
+            verseKey = __ret.verse;
+            verseData = __ret.verseData;
+            verse = __ret.nextVerse - 1; // correct for autoincrement
+          }
+        }
+
+        if (!verseData) { // if past end of chapter, skip to next
+          chapter += 1;
+          verse = 1;
+          continue;
+        }
+
+        verses.push({
+          chapter,
+          verse: verseKey,
+          verseData,
+        });
+        verse += 1;
+      }
+    }
+  }
+
+  return verses;
+}
