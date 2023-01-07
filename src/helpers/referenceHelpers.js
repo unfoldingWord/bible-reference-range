@@ -429,7 +429,7 @@ function findVerseInVerseRange(chapterData, verse, chapter) {
 }
 
 /**
- * find all verses contained in ref, returns array of references
+ * finds all verses from bookData contained in ref, then returns array of references and verse data
  * @param {object} bookData - indexed by chapter and then verse ref
  * @param {string} ref - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
  * @returns {[{chapter, verse, verseData}]}
