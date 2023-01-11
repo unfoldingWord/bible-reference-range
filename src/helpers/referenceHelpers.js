@@ -499,3 +499,14 @@ export function getVerses(bookData, ref) {
 
   return verses;
 }
+
+/**
+ * Tests if a given reference is contained within another given reference
+ *
+ * @param {string} refToSearch - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
+ * @param {string} refSearchTerm - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
+ * @returns {boolean} - true if refSearchTerm exists within refToSearch, false if otherwise
+ */
+export function doesReferenceContain(refToSearch, refSearchTerm) {
+  return false
+}

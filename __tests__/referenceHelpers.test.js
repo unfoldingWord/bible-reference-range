@@ -3,6 +3,7 @@ import deepEqual from 'deep-equal';
 import {
     cleanupReference,
     convertReferenceChunksToString,
+    doesReferenceContain,
     getVerses,
     parseReferenceToList,
 } from '../src/helpers/referenceHelpers';
@@ -75,6 +76,52 @@ describe('Tests parseReferenceToList', function () {
         console.log(`  but got ${JSON.stringify(results)}`);
         expect(results).toEqual(expect_);
       }
+    }
+  });
+});
+
+const searchReferenceTests = [
+  { ref: 'front:intro', containedRef: 'front:intro', nonContainedRef: '1:intro' },
+  { ref: '1:intro', containedRef: '1:intro', nonContainedRef: '2:intro' },
+  { ref: '1:1', containedRef: '1:1', nonContainedRef: '1:2'  },
+  { ref: '1:1-2', containedRef: '1:2', nonContainedRef: '1:3'  },
+  { ref: '1:1\u20142', containedRef: '1:2', nonContainedRef: '2:1' }, // try with EM DASH
+  { ref: '1:1\u20132', containedRef: '1:1', nonContainedRef: '3:4' }, // try with EN DASH
+  { ref: '1:1\u20102', containedRef: '1:2', nonContainedRef: '1:intro' }, // try with HYPHEN
+  { ref: '1:1\u00AD2', containedRef: '1:1', nonContainedRef: '1:3' }, // try with SOFT HYPHEN
+  { ref: '1:1\u20112', containedRef: '1:2', nonContainedRef: '1:12' }, // try with NON-BREAKING HYPHEN
+  { ref: '1:1,3', containedRef: '1:3', nonContainedRef: '1:2'  },
+  { ref: '1:1-2,4', containedRef: '1:2', nonContainedRef: '1:3' },
+  { ref: '1:1-2a,4', containedRef: '1:2', nonContainedRef: '1:3' },
+  { ref: '1:1b-2a,4', containedRef: '1:2', nonContainedRef: '1:3' },
+  { ref: '1:1-2,4b', containedRef: '1:4', nonContainedRef: '1:3' },
+  { ref: '1:1-2,4b,5-7a', containedRef: '1:7', nonContainedRef: '1:3' },
+  { ref: '1:1-2;2:4', containedRef: '2:4', nonContainedRef: '2:2' },
+  { ref: '1:1-2b;2:4a', containedRef: '2:4', nonContainedRef: '2:3' },
+  { ref: '1:1c-2b;2:4-5', containedRef: '1:1', nonContainedRef: '1:3'  },
+  { ref: '1:12-2:4', containedRef: '2:1', nonContainedRef: '1:11'  },
+  { ref: '1:12-2:4,6', containedRef: '1:99999', nonContainedRef: '2:5' },
+  { ref: '1:12-2:4;3:5-4:2', containedRef: '3:9999', nonContainedRef: '4:3' },
+  { ref: '1:1-2,2:4', containedRef: '2:4', nonContainedRef: '1:9999'  },
+  { ref: '1:1-2b,2:4c', containedRef: '1;2', nonContainedRef: '2:5'  },
+];
+
+describe('Test doesReferenceContain', () => {
+  it('Returns true if reference contains reference search term', () => {
+    for (const test of searchReferenceTests) {
+      const refToSearch = test.ref;
+      const refSearchTerm = test.containedRef;
+      
+      expect(doesReferenceContain(refToSearch, refSearchTerm)).toEqual(true);
+    }
+  });
+
+  it('Returns false if reference does not reference search term', () => {
+    for (const test of searchReferenceTests) {
+      const refToSearch = test.ref;
+      const refSearchTerm = test.nonContainedRef;
+      
+      expect(doesReferenceContain(refToSearch, refSearchTerm)).toEqual(false);
     }
   });
 });
