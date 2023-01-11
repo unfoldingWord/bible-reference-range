@@ -504,9 +504,46 @@ export function getVerses(bookData, ref) {
  * Tests if a given reference is contained within another given reference
  *
  * @param {string} refToSearch - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @param {string} refSearchTerm - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
+ * @param {string} refSearchTerm - formats such as “2:4”, “2:3a”, "1:9999"
  * @returns {boolean} - true if refSearchTerm exists within refToSearch, false if otherwise
  */
 export function doesReferenceContain(refToSearch, refSearchTerm) {
-  return false
+  const verseChunksToSearch = parseReferenceToList(refToSearch);
+  const {chapter: searchChapter, verse: searchVerse} = parseReferenceToList(refSearchTerm)[0];
+
+  for(const verseChunk of verseChunksToSearch) {
+    if (chunkContainsVerse(verseChunk, searchChapter, searchVerse)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Tests if a specific verse chunk contains a specific verse
+ * 
+ * @param {[{chapter, verse, endChapter, endVerse}]} verseChunk 
+ * @param {string} searchChapter 
+ * @param {string} searchVerse 
+ * @returns {boolean} - true if verse chunk contains verse, false if otherwise
+ */
+function chunkContainsVerse(verseChunk, searchChapter, searchVerse) {
+  if (!verseChunk.endChapter) {
+    if (searchChapter === verseChunk.chapter) {
+      if (!verseChunk.endVerse) {
+        return searchVerse === verseChunk.verse;
+      } else {
+        return (verseChunk.verse <= searchVerse && searchVerse <= verseChunk.endVerse);
+      }
+    } else return false;
+  } else {
+    if (verseChunk.chapter <= searchChapter && searchChapter <= verseChunk.endChapter) {
+      if (searchChapter === verseChunk.chapter) {
+        return (searchVerse >= verseChunk.verse); 
+      } else if (searchChapter === verseChunk.endChapter) {
+        return (searchVerse <= verseChunk.endVerse)
+      } else return true;
+    } else return false;
+  }
 }

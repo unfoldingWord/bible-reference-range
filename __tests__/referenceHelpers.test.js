@@ -102,8 +102,9 @@ const searchReferenceTests = [
   { ref: '1:12-2:4', containedRef: '2:1', nonContainedRef: '1:11'  },
   { ref: '1:12-2:4,6', containedRef: '1:99999', nonContainedRef: '2:5' },
   { ref: '1:12-2:4;3:5-4:2', containedRef: '3:9999', nonContainedRef: '4:3' },
+  { ref: '1:12-3:4;3:5-4:2', containedRef: '2:3', nonContainedRef: '4:3' },
   { ref: '1:1-2,2:4', containedRef: '2:4', nonContainedRef: '1:9999'  },
-  { ref: '1:1-2b,2:4c', containedRef: '1;2', nonContainedRef: '2:5'  },
+  { ref: '1:1-2b,2:4c', containedRef: '1:2', nonContainedRef: '2:5'  },
 ];
 
 describe('Test doesReferenceContain', () => {
