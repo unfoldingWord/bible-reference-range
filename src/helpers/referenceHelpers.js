@@ -25,9 +25,37 @@ const RANGE_SEPARATORS = [
       let lastChapter = 1;
   
       for (const refChunk of refChunks) {
+        // 1:1-23,32 ; 1-3
         if (!refChunk) {
           continue;
         }
+
+        if (!refChunk.includes(':')) {
+          // This does not contain verses... it must be a chapter, chapter range, or invalid
+          const refType = typeof(ref);
+          const isNumber = refType === 'number';
+  
+          if (!isNumber) {
+            const pos = getRangeSeparator(ref);
+            const foundRange = pos >= 0;
+        
+            if (foundRange) {
+              const start = toIntIfValid(ref.substring(0, pos));
+              const end = toIntIfValid(ref.substring(pos + 1));
+        
+              verseChunks.push({
+                chapter: start,
+                endChapter: end
+              });
+            } 
+          } else {
+            verseChunks.push({
+              chapter: toIntIfValid(ref)
+            });
+          }
+          continue;
+        }
+      
   
         const verseParts = refChunk.split(',');
         let {
@@ -504,7 +532,7 @@ export function getVerses(bookData, ref) {
  * Tests if a given reference is contained within another given reference
  *
  * @param {string} refToSearch - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @param {string} refSearchTerm - formats such as “2:4”, “2:3a”, "1:9999"
+ * @param {string} refSearchTerm - formats such as “2:4”, “2:3a”, "1:9999", "2:1-3" (supports verse range, not chapter range)
  * @returns {boolean} - true if refSearchTerm exists within refToSearch, false if otherwise
  */
 export function doesReferenceContain(refToSearch, refSearchTerm) {
@@ -516,6 +544,8 @@ export function doesReferenceContain(refToSearch, refSearchTerm) {
       return true;
     }
   }
+
+  // Partial overlap (refToSearch: 1:1-2:3 refSearchTerm: 2:2-7) RETURNS TRUE
 
   return false;
 }
