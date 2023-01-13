@@ -9,6 +9,7 @@ import {
 } from '../src/helpers/referenceHelpers';
 
 const tests = [
+  { ref: '1:3ff', expectConverted: '1:3ff', expectedCleaned: {chapter: 1, verse: '3ff', verseStr: '3ff'}, expectParsed: [{chapter: 1, verse: 3, endVerse: 'ff'}]},
   { ref: 'front:intro', expectConverted: 'front:intro', expectedCleaned: { chapter: 'front', verse: 'intro' }, expectParsed: [{ chapter: 'front', verse: 'intro' }] },
   { ref: '1:intro', expectConverted: '1:intro', expectedCleaned: { chapter: 1, verse: 'intro' }, expectParsed: [{ chapter: 1, verse: 'intro' }] },
   { ref: '1:1', expectConverted: '1:1', expectedCleaned: { chapter: 1, verse: 1 }, expectParsed: [{ chapter: 1, verse: 1 }] },
@@ -34,6 +35,9 @@ const tests = [
   { ref: '1:1-2b,2:4c', expectConverted: '1:1-2;2:4', expectedCleaned: { chapter: 1, verse: '1-2;2:4', verseStr: '1-2;2:4' }, expectParsed: [{ chapter: 1, verse: 1, endVerse: 2 }, { chapter: 2, verse: 4 }] },
   { ref: '1-3', expectConverted: '1-3', expectedCleaned: {chapter: 1}, expectParsed: [{ chapter: 1, endChapter: 3 }] },
   { ref: '3', expectConverted: '3', expectedCleaned: {chapter: 3}, expectParsed: [{ chapter: 3 }] },
+  { ref: '1:1-2;3-4', expectConverted: '1:1-2;3-4', expectedCleaned: { chapter: 1, verse: '1-2;3-4', verseStr: '1-2;3-4' }, expectParsed: [{ chapter: 1, verse: 1, endVerse: 2 },{ chapter: 3, endChapter: 4 }] },
+  { ref: '1:3ff', expectConverted: '1:3ff', expectedCleaned: {chapter: 1, verse: '3ff', verseStr: '3ff'}, expectParsed: [{chapter: 1, verse: 3, endVerse: 'ff'}]},
+  { ref: '1:1-23;2:7ff', expectConverted: '1:1-23;2:7ff', expectedCleaned: {chapter: 1, verse: '1-23;2:7ff', verseStr: '1-23;2:7ff'}, expectParsed: [{chapter: 1, verse: 1, endVerse: 23}, {chapter: 2, verse: 7, endVerse: 'ff'}]},
 ];
 
 describe('Tests parseReferenceToList', function () {
@@ -110,7 +114,10 @@ const searchReferenceTests = [
   { ref: '1-3', containedRef: '1:4', nonContainedRef: '4:1'  },
   { ref: '1-3', containedRef: '3:9999', nonContainedRef: '4:1'  },
   { ref: '3', containedRef: '3:9999', nonContainedRef: '2:9999' },
-  // { ref: '1:2ff', containedRef: '1:2', nonContainedRef: '2:5'  }, // TODO: Functionality for other basic range functions like ff
+  { ref: '1:1-2;3-4', containedRef: '3:9999', nonContainedRef: '2:9999'},
+  { ref: '1:1-2;3-4', containedRef: '1:1', nonContainedRef: '1:3'},
+  { ref: '1:2ff', containedRef: '1:2', nonContainedRef: '2:5'  },
+  { ref: '1:2ff', containedRef: '1:9999', nonContainedRef: '1:1'  },
 ];
 
 describe('Test doesReferenceContain', () => {

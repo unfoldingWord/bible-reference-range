@@ -38,6 +38,7 @@ const RANGE_SEPARATORS = [
       
   
         const verseParts = refChunk.split(',');
+        // get the object from the first chunk before the comma
         let {
           chapter,
           verse,
@@ -62,6 +63,7 @@ const RANGE_SEPARATORS = [
           lastChapter = range.endChapter;
         }
   
+        // get the object from the rest of the chunks after the comma
         for (let i = 1; i < verseParts.length; i++) {
           const versePart = verseParts[i];
   
@@ -180,7 +182,11 @@ const RANGE_SEPARATORS = [
             }
   
             if (chunk.endVerse) {
-              result += `-${chunk.endVerse}`;
+              if (chunk.endVerse === 'ff') {
+                result += chunk.endVerse;
+              } else {
+                result += `-${chunk.endVerse}`
+              }
             }
           }
           lastChunk = chunk;
@@ -359,6 +365,14 @@ function getRange(ref) {
             endVerse: toIntIfValid(endStr),
           };
         }
+      } else if (ref.toLowerCase().includes('ff')) {
+        const followingPos = ref.indexOf('ff')
+        const start = toIntIfValid(ref.substring(0, followingPos));
+
+        return {
+          verse: start,
+          endVerse: 'ff'
+        }
       }
     }
   
@@ -411,6 +425,10 @@ export function toInt(value) {
       const pos = getRangeSeparator(value);
   
       if (pos >= 0) {
+        return value;
+      }
+
+      if (value.includes('ff')) {
         return value;
       }
   
@@ -580,7 +598,11 @@ function chunkContainsVerse(verseChunk, searchChapter, searchVerse) {
         if (!verseChunk.endVerse) {
           return searchVerse === verseChunk.verse;
         } else {
-          return (verseChunk.verse <= searchVerse && searchVerse <= verseChunk.endVerse);
+          if (verseChunk.endVerse === 'ff') {
+            return verseChunk.verse <= searchVerse;
+          } else {
+            return (verseChunk.verse <= searchVerse && searchVerse <= verseChunk.endVerse);
+          }
         }
       } else return true;
     } else return false;
