@@ -32,7 +32,8 @@ const tests = [
   { ref: '1:12-2:4;3:5-4:2', expectConverted: '1:12-2:4;3:5-4:2', expectedCleaned: { chapter: 1, verse: '12-2:4;3:5-4:2', verseStr: '12-2:4;3:5-4:2' }, expectParsed: [{ chapter: 1, verse: 12, endChapter: 2, endVerse: 4 }, { chapter: 3, verse: 5, endChapter: 4, endVerse: 2 }] },
   { ref: '1:1-2,2:4', expectConverted: '1:1-2;2:4', expectedCleaned: { chapter: 1, verse: '1-2;2:4', verseStr: '1-2;2:4' }, expectParsed: [{ chapter: 1, verse: 1, endVerse: 2 }, { chapter: 2, verse: 4 }] },
   { ref: '1:1-2b,2:4c', expectConverted: '1:1-2;2:4', expectedCleaned: { chapter: 1, verse: '1-2;2:4', verseStr: '1-2;2:4' }, expectParsed: [{ chapter: 1, verse: 1, endVerse: 2 }, { chapter: 2, verse: 4 }] },
-  { ref: '1-3', expectConverted: '1-3', expectedCleaned: {chapter: 1, endChapter: 3}, expectParsed: [{ chapter: 1, endChapter: 3 }] },
+  { ref: '1-3', expectConverted: '1-3', expectedCleaned: {chapter: 1}, expectParsed: [{ chapter: 1, endChapter: 3 }] },
+  { ref: '3', expectConverted: '3', expectedCleaned: {chapter: 3}, expectParsed: [{ chapter: 3 }] },
 ];
 
 describe('Tests parseReferenceToList', function () {
@@ -106,8 +107,9 @@ const searchReferenceTests = [
   { ref: '1:12-3:4;3:5-4:2', containedRef: '2:3', nonContainedRef: '4:3' },
   { ref: '1:1-2,2:4', containedRef: '2:4', nonContainedRef: '1:9999'  },
   { ref: '1:1-2b,2:4c', containedRef: '1:2', nonContainedRef: '2:5'  },
-  // { ref: '1-3', containedRef: '1:2', nonContainedRef: '2:5'  }, // TODO: Functionality for including range of chapters
-  // { ref: '1-3', containedRef: '1:2', nonContainedRef: '2:5'  },
+  { ref: '1-3', containedRef: '1:4', nonContainedRef: '4:1'  },
+  { ref: '1-3', containedRef: '3:9999', nonContainedRef: '4:1'  },
+  { ref: '3', containedRef: '3:9999', nonContainedRef: '2:9999' },
   // { ref: '1:2ff', containedRef: '1:2', nonContainedRef: '2:5'  }, // TODO: Functionality for other basic range functions like ff
 ];
 

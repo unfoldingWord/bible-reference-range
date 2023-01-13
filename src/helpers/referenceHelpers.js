@@ -30,29 +30,9 @@ const RANGE_SEPARATORS = [
           continue;
         }
 
+        // If no semicolon (no verses), reference is either a chapter, chapter range, or invalid
         if (!refChunk.includes(':')) {
-          // This does not contain verses... it must be a chapter, chapter range, or invalid
-          const refType = typeof(ref);
-          const isNumber = refType === 'number';
-  
-          if (!isNumber) {
-            const pos = getRangeSeparator(ref);
-            const foundRange = pos >= 0;
-        
-            if (foundRange) {
-              const start = toIntIfValid(ref.substring(0, pos));
-              const end = toIntIfValid(ref.substring(pos + 1));
-        
-              verseChunks.push({
-                chapter: start,
-                endChapter: end
-              });
-            } 
-          } else {
-            verseChunks.push({
-              chapter: toIntIfValid(ref)
-            });
-          }
+          verseChunks = addChapterReference(verseChunks, refChunk)
           continue;
         }
       
@@ -129,6 +109,33 @@ const RANGE_SEPARATORS = [
     }
     return null;
   }
+
+  /**
+   * If valid chapter reference, add chapter object to verse chunks list
+   * 
+   * @param {[{chapter, verse, endChapter, endVerse}]} verseChunks 
+   * @param {string} chapterRef 
+   * @returns {[{chapter, verse, endChapter, endVerse}]} - Array copy with new chapter reference if valid, or input array if not
+   */
+  function addChapterReference(verseChunks, chapterRef) {
+    const isRange = getRangeSeparator(chapterRef) >= 0
+    
+    if (isRange) {
+      const pos = getRangeSeparator(chapterRef);
+      const foundRange = pos >= 0;
+
+      if (foundRange) {
+        const start = toIntIfValid(chapterRef.substring(0, pos));
+        const end = toIntIfValid(chapterRef.substring(pos + 1));
+
+        return [...verseChunks, {chapter: start, endChapter: end}]
+      } 
+    } else {
+      return [...verseChunks, {chapter: toIntIfValid(chapterRef)}]
+    }
+
+    return verseChunks
+  }
   
   /**
    * conver array of Reference chunks to reference string
@@ -148,21 +155,29 @@ const RANGE_SEPARATORS = [
             if (result) {
               result += ';';
             }
-            result += `${chunk.chapter}:${chunk.verse}-${chunk.endChapter}:${chunk.endVerse}`;
+            // Check for chapter range without verses
+            if (!chunk.verse) {
+              result += `${chunk.chapter}-${chunk.endChapter}`
+            } else {
+              result += `${chunk.chapter}:${chunk.verse}-${chunk.endChapter}:${chunk.endVerse}`;
+            }
             lastChapter = chunk.endChapter;
           } else {
             if ((lastChapter !== chunk.chapter) || (lastChunk && lastChunk.endChapter)) {
               if (result) {
                 result += ';';
               }
-              result += `${chunk.chapter}:`;
+              result += `${chunk.chapter}` + (chunk.verse ? ':' : '');
               lastChapter = chunk.chapter;
             } else { // same chapter
               if (result) {
                 result += ',';
               }
             }
+            // check for solo chapter
+            if (chunk.verse) {
             result += `${chunk.verse}`;
+            }
   
             if (chunk.endVerse) {
               result += `-${chunk.endVerse}`;
@@ -561,18 +576,22 @@ export function doesReferenceContain(refToSearch, refSearchTerm) {
 function chunkContainsVerse(verseChunk, searchChapter, searchVerse) {
   if (!verseChunk.endChapter) {
     if (searchChapter === verseChunk.chapter) {
-      if (!verseChunk.endVerse) {
-        return searchVerse === verseChunk.verse;
-      } else {
-        return (verseChunk.verse <= searchVerse && searchVerse <= verseChunk.endVerse);
-      }
+      if (verseChunk.verse) {
+        if (!verseChunk.endVerse) {
+          return searchVerse === verseChunk.verse;
+        } else {
+          return (verseChunk.verse <= searchVerse && searchVerse <= verseChunk.endVerse);
+        }
+      } else return true;
     } else return false;
   } else {
     if (verseChunk.chapter <= searchChapter && searchChapter <= verseChunk.endChapter) {
-      if (searchChapter === verseChunk.chapter) {
-        return (searchVerse >= verseChunk.verse); 
-      } else if (searchChapter === verseChunk.endChapter) {
-        return (searchVerse <= verseChunk.endVerse)
+      if (verseChunk.verse) {
+        if (searchChapter === verseChunk.chapter) {
+          return searchVerse >= verseChunk.verse; 
+        } else if (searchChapter === verseChunk.endChapter) {
+          return searchVerse <= verseChunk.endVerse;
+        } else return true;
       } else return true;
     } else return false;
   }
