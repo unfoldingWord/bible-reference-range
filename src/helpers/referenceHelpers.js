@@ -562,23 +562,36 @@ export function getVerses(bookData, ref) {
 }
 
 /**
- * Tests if a given reference is contained within another given reference
+ * Tests if a given reference is contained within another given reference.
+ * 
  *
  * @param {string} refToSearch - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @param {string} refSearchTerm - formats such as “2:4”, “2:3a”, "1:9999", "2:1-3" (supports verse range, not chapter range)
+ * @param {string} refSearchTerm - formats such as “2:4”, “2:3a”, "1:9999", "2:1-3" (supports verse range, not chapter range or 'ff')
+ * @param {string} strict - flag to determine if entire range of refSearchTerm should be contained in refToSearch. Default false
  * @returns {boolean} - true if refSearchTerm exists within refToSearch, false if otherwise
  */
-export function doesReferenceContain(refToSearch, refSearchTerm) {
+export function doesReferenceContain(refToSearch, refSearchTerm, strict=false) {
   const verseChunksToSearch = parseReferenceToList(refToSearch);
-  const {chapter: searchChapter, verse: searchVerse} = parseReferenceToList(refSearchTerm)[0];
+  const refSearchChunk = parseReferenceToList(refSearchTerm)[0];
 
   for(const verseChunk of verseChunksToSearch) {
-    if (chunkContainsVerse(verseChunk, searchChapter, searchVerse)) {
-      return true;
+    if (refSearchChunk.endVerse) {
+      if (strict) {
+        if (chunkContainsVerseRangeStrict(verseChunk, refSearchChunk)) {
+          return true;
+        }
+      } else {
+        // Loose!
+      }
+    } else {
+      if (chunkContainsVerse(verseChunk, refSearchChunk.chapter, refSearchChunk.verse)) {
+        return true;
+      }
     }
   }
 
   // Partial overlap (refToSearch: 1:1-2:3 refSearchTerm: 2:2-7) RETURNS TRUE
+  // Pass in a flag for strict/loose containing
 
   return false;
 }
@@ -618,3 +631,116 @@ function chunkContainsVerse(verseChunk, searchChapter, searchVerse) {
     } else return false;
   }
 }
+
+/**
+ * Tests if a specific verse chunk completely contains a specific verse range
+ * 
+ * @param {string} verseChunkToSearch 
+ * @param {string} searchChunk 
+ * @returns {boolean} - true if verse range is fully contained within a reference, false otherwise.
+ */
+function chunkContainsVerseRangeStrict(verseChunk, searchChunk) {
+  if (!verseChunk.endChapter) {
+    if (searchChunk.endChapter) {
+      return false; 
+    }
+    return chapterChunkContainedInChapterStrict(verseChunk, searchChunk);
+  } else {
+    if (searchChunk.endChapter) {
+      return rangeChunkContainedInChapterRangeStrict(verseChunk, searchChunk)
+    } else if (verseChunk.chapter <= searchChunk.chapter && searchChunk.chapter <= verseChunk.endChapter) {
+      return chapterChunkContainedInChapterRangeStrict(verseChunk, searchChunk);
+    } return false;
+  }
+}
+
+function chapterChunkContainedInChapterStrict (chapterChunk, chapterSearchChunk) {
+  if (chapterSearchChunk.chapter === chapterChunk.chapter) {
+    if (chapterChunk.verse) {
+      if (chapterChunk.endVerse === 'ff') {
+        return chapterChunk.verse <= chapterSearchChunk.verse;
+      } else {
+        return chapterChunk.verse <= chapterSearchChunk.verse && chapterSearchChunk.endVerse <= chapterChunk.endVerse;
+      }
+    } else return true; 
+  } else return false;
+}
+
+function rangeChunkContainedInChapterRangeStrict (chapterRange, rangeSearchChunk) {
+  if (chapterRange.chapter <= rangeSearchChunk.chapter && rangeSearchChunk.endChapter <= chapterRange.endChapter) {
+    if (chapterRange.verse) {
+      if (rangeSearchChunk.chapter === chapterRange.chapter && rangeSearchChunk.endChapter === chapterRange.endChapter) {
+        return (rangeSearchChunk.verse >= chapterRange.verse && rangeSearchChunk.endVerse <= chapterRange.endVerse);
+      } 
+      if (rangeSearchChunk.chapter === chapterRange.chapter) {
+        return rangeSearchChunk.verse >= chapterRange.verse;
+      } 
+      if(rangeSearchChunk.endChapter === chapterRange.endChapter) {
+        return rangeSearchChunk.endVerse <= chapterRange.endVerse;
+      } 
+      return true;
+    } else return true;
+  } return false;
+}
+
+function chapterChunkContainedInChapterRangeStrict (chapterRange, chapterSearchChunk) {
+  if (chapterSearchChunk.chapter === chapterRange.chapter) {
+    return chapterSearchChunk.verse >= chapterRange.verse;
+  }
+  if(chapterSearchChunk.chapter === chapterRange.endChapter) {
+    return chapterSearchChunk.endVerse <= chapterRange.endVerse;
+  }
+  return true;
+}
+
+// // This function is only called if verseChunkToSearch AND searchChunk are ranges!
+// function chunkContainsVerseRange(verseChunkToSearch, searchChunk, strict=false) {
+//   if (!verseChunk.endChapter) {
+//     if (strict && searchChunk.endChapter) {
+//       return false;
+//     }
+//     // If strict, object MUST at most look like ({chapter, verse, endVerse})
+//     if (searchChunk.chapter === verseChunk.chapter) {
+//       if (verseChunk.verse) {
+//         if (verseChunk.endVerse === 'ff') {
+//           if (strict) {
+//             return verseChunk.verse <= searchChunk.verse;
+//           } else {
+//             return verseChunk.verse <= searchChunk.endVerse || !!searchChunk.endChapter
+//           }
+//         } else {
+//           if (strict) {
+//             return (verseChunk.verse <= searchChunk.verse && searchChunk.endVerse <= verseChunk.endVerse);
+//           } else {
+
+//           }
+//         }
+//       } else return true; // This should handle single chapters. This is good for strict mode too!
+//     } else return false;
+//   } else {
+//     if (verseChunk.chapter <= searchChapter && searchChapter <= verseChunk.endChapter) {
+//       if (verseChunk.verse) {
+//         if (searchChapter === verseChunk.chapter) {
+//           return searchVerse >= verseChunk.verse; 
+//         } else if (searchChapter === verseChunk.endChapter) {
+//           return searchVerse <= verseChunk.endVerse;
+//         } else return true;
+//       } else return true; // This should handle a chapter range!
+//     } else return false;
+//   }
+// }
+
+/* Brainstorming
+
+given: {startChapter, endChapter, startVerse, endVerse}
+
+
+3:2, 3:1-3
+
+STRICT
+  Check to make sure that every verse from startChapter, start Verse -> end Chapter, end Verse is contained
+ 
+LOOSE
+  Return true if ANY verse within shartChapter, startVerse -> endChapter, endVerse is contained
+
+  */

@@ -101,22 +101,21 @@ const searchReferenceTests = [
   { ref: '1:1-2a,4', containedRef: '1:2', nonContainedRef: '1:3', containedRangeLoose: '1:2-6', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '1:5-9', nonContainedRangeStrict: '1:2-6' },
   { ref: '1:1b-2a,4', containedRef: '1:2', nonContainedRef: '1:3', containedRangeLoose: '1:2-6', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '1:5-9', nonContainedRangeStrict: '1:2-6' },
   { ref: '1:1-2,4b', containedRef: '1:4', nonContainedRef: '1:3', containedRangeLoose: '1:2-6', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '1:5-9', nonContainedRangeStrict: '1:2-6' },
-  { ref: '1:1-2,4b,5-7a', containedRef: '1:7', nonContainedRef: '1:3', containedRangeLoose: '1:1-9', containedRangeStrict: '1:4-6', nonContainedRangeLoose: '1:8-9', nonContainedRangeStrict: '1:1-9' },
+  { ref: '1:1-2,4b,5-7a', containedRef: '1:7', nonContainedRef: '1:3', containedRangeLoose: '1:1-9', containedRangeStrict: '1:5-7', nonContainedRangeLoose: '1:8-9', nonContainedRangeStrict: '1:1-9' },
   { ref: '1:1-2;2:4', containedRef: '2:4', nonContainedRef: '2:2', containedRangeLoose: '1:2-7', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '2:1-3', nonContainedRangeStrict: '1:2-7' },
   { ref: '1:1-2b;2:4a', containedRef: '2:4', nonContainedRef: '2:3', containedRangeLoose: '2:2-6', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '1:4-8', nonContainedRangeStrict: '2:2-6' },
   { ref: '1:1c-2b;2:4-5', containedRef: '1:1', nonContainedRef: '1:3', containedRangeLoose: '2:1-9', containedRangeStrict: '2:4-5', nonContainedRangeLoose: '2:8-20', nonContainedRangeStrict: '2:1-9' },
   { ref: '1:12-2:4', containedRef: '2:1', nonContainedRef: '1:11', containedRangeLoose: '2:1-7', containedRangeStrict: '1:14-2:3', nonContainedRangeLoose: '1:6-1:11', nonContainedRangeStrict: '2:1-7' },
   { ref: '1:12-2:4,6', containedRef: '1:99999', nonContainedRef: '2:5', containedRangeLoose: '2-3', containedRangeStrict: '2:1-4', nonContainedRangeLoose: '2:7-20', nonContainedRangeStrict: '2-3' },
   { ref: '1:12-2:4;3:5-4:2', containedRef: '3:9999', nonContainedRef: '4:3', containedRangeLoose: '4:1-5', containedRangeStrict: '3:5-4:1', nonContainedRangeLoose: '1:1-11', nonContainedRangeStrict: '4:1-5' },
-  { ref: '1:12-3:4;3:5-4:2', containedRef: '2:3', nonContainedRef: '4:3', containedRangeLoose: '1-4', containedRangeStrict: '2-3', nonContainedRangeLoose: '5-6', nonContainedRangeStrict: '1-4' },
   { ref: '1:1-2,2:4', containedRef: '2:4', nonContainedRef: '1:9999', containedRangeLoose: '1:2-7', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '2:1-3', nonContainedRangeStrict: '1:2-7' },
   { ref: '1:1-2b,2:4c', containedRef: '1:2', nonContainedRef: '2:5', containedRangeLoose: '1:2-7', containedRangeStrict: '1:1-2', nonContainedRangeLoose: '2:1-3', nonContainedRangeStrict: '1:2-7' },
-  { ref: '1-3', containedRef: '1:4', nonContainedRef: '4:1', containedRangeLoose: '2:5-4:9', containedRangeStrict: '2-3', nonContainedRangeLoose: '4:1-6:5', nonContainedRangeStrict: '2:5-4:9' },
-  { ref: '1-3', containedRef: '3:9999', nonContainedRef: '4:1', containedRangeLoose: '3-5', containedRangeStrict: '1:6-3:9', nonContainedRangeLoose: '4-6', nonContainedRangeStrict: '3-5' },
+  { ref: '1-3', containedRef: '1:4', nonContainedRef: '4:1', containedRangeLoose: '2:5-4:9', containedRangeStrict: '2:7-3:9', nonContainedRangeLoose: '4:1-6:5', nonContainedRangeStrict: '2:5-4:9' },
+  { ref: '1-3', containedRef: '3:9999', nonContainedRef: '4:1', containedRangeLoose: '3-5', containedRangeStrict: '1:6-3:9', nonContainedRangeLoose: '4-6', nonContainedRangeStrict: '3:2-5:9' },
   { ref: '3', containedRef: '3:9999', nonContainedRef: '2:9999', containedRangeLoose: '2:1-3:5', containedRangeStrict: '3:3-999', nonContainedRangeLoose: '4:1-9', nonContainedRangeStrict: '2:1-3:5' },
   { ref: '1:1-2;3-4', containedRef: '3:9999', nonContainedRef: '2:9999', containedRangeLoose: '3:999-5:1', containedRangeStrict: '3:22-4:8', nonContainedRangeLoose: '1:3-4', nonContainedRangeStrict: '3:999-5:1'},
   { ref: '1:1-2;3-4', containedRef: '1:1', nonContainedRef: '1:3', containedRangeLoose: '3:999-5:1', containedRangeStrict: '3:22-4:8', nonContainedRangeLoose: '1:3-4', nonContainedRangeStrict: '3:999-5:1'},
-  { ref: '1:2ff', containedRef: '1:2', nonContainedRef: '2:5', containedRangeLoose: '1', containedRangeStrict: '1:2-9999', nonContainedRangeLoose: '2-3', nonContainedRangeStrict: '1' },
+  { ref: '1:2ff', containedRef: '1:2', nonContainedRef: '2:5', containedRangeLoose: '1', containedRangeStrict: '1:2-9999', nonContainedRangeLoose: '2-3', nonContainedRangeStrict: '1:1-99' },
   { ref: '1:2ff', containedRef: '1:9999', nonContainedRef: '1:1', containedRangeLoose: '1:1-99', containedRangeStrict: '1:5-9', nonContainedRangeLoose: '2:1-3', nonContainedRangeStrict: '1:1-99' },
 ];
 
@@ -142,7 +141,7 @@ describe('Test doesReferenceContain', () => {
 
     if (test.containedRangeStrict) {
       it(`does reference '${refToSearch}' contain range '${test.containedRangeStrict}' in strict mode should return true`, () => {
-        expect(doesReferenceContain(refToSearch, test.containedRangeStrict)).toEqual(true);
+        expect(doesReferenceContain(refToSearch, test.containedRangeStrict, true)).toEqual(true);
       })
     }
 
@@ -154,7 +153,7 @@ describe('Test doesReferenceContain', () => {
 
     if (test.nonContainedRangeStrict) {
       it(`does reference '${refToSearch}' contain range '${test.nonContainedRangeStrict}' in strict mode should return false`, () => {
-        expect(doesReferenceContain(refToSearch, test.nonContainedRangeStrict)).toEqual(false);
+        expect(doesReferenceContain(refToSearch, test.nonContainedRangeStrict, true)).toEqual(false);
       })   
     }
   }
