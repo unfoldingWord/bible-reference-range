@@ -576,13 +576,9 @@ export function doesReferenceContain(refToSearch, refSearchTerm, strict=false) {
 
   for(const verseChunk of verseChunksToSearch) {
     if (refSearchChunk.endVerse) {
-      if (strict) {
-        if (chunkContainsVerseRangeStrict(verseChunk, refSearchChunk)) {
+        if (chunkContainsVerseRange(verseChunk, refSearchChunk, strict)) {
           return true;
         }
-      } else {
-        // Loose!
-      }
     } else {
       if (chunkContainsVerse(verseChunk, refSearchChunk.chapter, refSearchChunk.verse)) {
         return true;
@@ -639,58 +635,148 @@ function chunkContainsVerse(verseChunk, searchChapter, searchVerse) {
  * @param {string} searchChunk 
  * @returns {boolean} - true if verse range is fully contained within a reference, false otherwise.
  */
-function chunkContainsVerseRangeStrict(verseChunk, searchChunk) {
+function chunkContainsVerseRange(verseChunk, searchChunk, strict) {
   if (!verseChunk.endChapter) {
     if (searchChunk.endChapter) {
-      return false; 
+      return chapterRangeContainedInChapter(verseChunk, searchChunk, strict);
     }
-    return chapterChunkContainedInChapterStrict(verseChunk, searchChunk);
+    return chapterVerseRangeContainedInChapter(verseChunk, searchChunk, strict);
   } else {
     if (searchChunk.endChapter) {
-      return rangeChunkContainedInChapterRangeStrict(verseChunk, searchChunk)
+      return chapterRangeContainedInChapterRange(verseChunk, searchChunk, strict)
     } else if (verseChunk.chapter <= searchChunk.chapter && searchChunk.chapter <= verseChunk.endChapter) {
-      return chapterChunkContainedInChapterRangeStrict(verseChunk, searchChunk);
+      return chapterVerseRangeContainedInChapterRange(verseChunk, searchChunk, strict);
     } return false;
   }
 }
 
-function chapterChunkContainedInChapterStrict (chapterChunk, chapterSearchChunk) {
-  if (chapterSearchChunk.chapter === chapterChunk.chapter) {
-    if (chapterChunk.verse) {
-      if (chapterChunk.endVerse === 'ff') {
-        return chapterChunk.verse <= chapterSearchChunk.verse;
+function chapterRangeContainedInChapter(chapter, searchChapterRange, strict=false) {
+  if (strict) {
+    return false;
+  } else {
+    if (searchChapterRange.endChapter < chapter.chapter || searchChapterRange.chapter > chapter.chapter) {
+      return false;
+    } 
+    if (searchChapterRange.endChapter === chapter.chapter) {
+      if (!chapter.verse) {
+        return true;
+      } 
+      if (chapter.endVerse === 'ff') {
+        return searchChapterRange.endVerse >= chapter.verse;
+      } 
+      if (searchChapterRange.endVerse < chapter.verse) {
+        return false;
+      } 
+      return true;
+    } 
+    if (searchChapterRange.chapter === chapter.chapter) {
+      if (!chapter.verse) {
+        return true;
+      }
+      if (chapter.endVerse === 'ff') {
+        return true;
+      }
+      if (searchChapterRange.verse > chapter.endVerse) {
+        return false;
+      }
+    } else return true;
+  } 
+}
+
+function chapterVerseRangeContainedInChapter (singleChapterRange, searchRange, strict=false) {
+  if (searchRange.chapter === singleChapterRange.chapter) {
+    if (singleChapterRange.verse) {
+      if (singleChapterRange.endVerse === 'ff') {
+        if (strict) {
+          return singleChapterRange.verse <= searchRange.verse;
+        } else {
+          return searchRange.endVerse <= singleChapterRange.verse; 
+        } 
       } else {
-        return chapterChunk.verse <= chapterSearchChunk.verse && chapterSearchChunk.endVerse <= chapterChunk.endVerse;
+        if (strict) {
+          return singleChapterRange.verse <= searchRange.verse && searchRange.endVerse <= singleChapterRange.endVerse;
+        } else {
+          // Search range is completely before or completely after chapter range to search
+          if (searchRange.endVerse <= singleChapterRange.verse || searchRange.verse >= singleChapterRange.endVerse) {
+            return false;
+          } else return true;
+        }
       }
     } else return true; 
   } else return false;
 }
 
-function rangeChunkContainedInChapterRangeStrict (chapterRange, rangeSearchChunk) {
-  if (chapterRange.chapter <= rangeSearchChunk.chapter && rangeSearchChunk.endChapter <= chapterRange.endChapter) {
-    if (chapterRange.verse) {
-      if (rangeSearchChunk.chapter === chapterRange.chapter && rangeSearchChunk.endChapter === chapterRange.endChapter) {
-        return (rangeSearchChunk.verse >= chapterRange.verse && rangeSearchChunk.endVerse <= chapterRange.endVerse);
-      } 
-      if (rangeSearchChunk.chapter === chapterRange.chapter) {
-        return rangeSearchChunk.verse >= chapterRange.verse;
-      } 
-      if(rangeSearchChunk.endChapter === chapterRange.endChapter) {
-        return rangeSearchChunk.endVerse <= chapterRange.endVerse;
-      } 
-      return true;
-    } else return true;
-  } return false;
+function chapterRangeContainedInChapterRange (chapterRange, rangeSearchChunk, strict=false) {
+  if (strict) {
+    if (chapterRange.chapter <= rangeSearchChunk.chapter && rangeSearchChunk.endChapter <= chapterRange.endChapter) {
+      if (chapterRange.verse) {
+        if (rangeSearchChunk.chapter === chapterRange.chapter && rangeSearchChunk.endChapter === chapterRange.endChapter) {
+          return (rangeSearchChunk.verse >= chapterRange.verse && rangeSearchChunk.endVerse <= chapterRange.endVerse);
+        } 
+        if (rangeSearchChunk.chapter === chapterRange.chapter) {
+          return rangeSearchChunk.verse >= chapterRange.verse;
+        } 
+        if(rangeSearchChunk.endChapter === chapterRange.endChapter) {
+          return rangeSearchChunk.endVerse <= chapterRange.endVerse;
+        } 
+        return true;
+      } else return true;
+    } return false;
+  } else {
+    if (rangeSearchChunk.endChapter < chapterRange.chapter || rangeSearchChunk.chapter > chapterRange.endChapter) {
+      return false; 
+    } 
+    if (rangeSearchChunk.endChapter === chapterRange.chapter) {
+      if (!chapterRange.verse) {
+        return true;
+      }
+      if (rangeSearchChunk.endVerse < chapterRange.verse) {
+        return false;
+      }
+    }
+    if (rangeSearchChunk.chapter === chapterRange.endChapter) {
+      if (!chapterRange.verse) {
+        return true;
+      }
+      if (rangeSearchChunk.verse > chapterRange.endVerse) {
+        return false;
+      }
+    } 
+    return true;
+  }
 }
 
-function chapterChunkContainedInChapterRangeStrict (chapterRange, chapterSearchChunk) {
-  if (chapterSearchChunk.chapter === chapterRange.chapter) {
-    return chapterSearchChunk.verse >= chapterRange.verse;
+function chapterVerseRangeContainedInChapterRange (chapterRange, chapterSearchChunk, strict) {
+  if (strict) {
+    if (chapterSearchChunk.chapter === chapterRange.chapter) {
+      return chapterSearchChunk.verse >= chapterRange.verse;
+    }
+    if(chapterSearchChunk.chapter === chapterRange.endChapter) {
+      return chapterSearchChunk.endVerse <= chapterRange.endVerse;
+    }
+    return true;
+  } else {
+    if (chapterSearchChunk.chapter > chapterRange.endChapter || chapterSearchChunk.endChapter < chapterRange.chapter) {
+      return false;
+    }
+    if (chapterSearchChunk.chapter === chapterRange.endChapter) {
+      if (!chapterRange.verse) {
+        return true;
+      }
+      if (chapterSearchChunk.verse > chapterRange.endVerse) {
+        return false;
+      }
+    }
+    if (chapterSearchChunk.endChapter === chapterRange.chapter) {
+      if (!chapterRange.verse) {
+        return true;
+      }
+      if (chapterSearchChunk.endVerse < chapterRange.verse) {
+        return false;
+      }
+    }
+    return true;
   }
-  if(chapterSearchChunk.chapter === chapterRange.endChapter) {
-    return chapterSearchChunk.endVerse <= chapterRange.endVerse;
-  }
-  return true;
 }
 
 // // This function is only called if verseChunkToSearch AND searchChunk are ranges!
