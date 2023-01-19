@@ -661,6 +661,9 @@ function chapterRangeContainedInChapter(chapter, searchChapterRange, strict=fals
       if (!chapter.verse) {
         return true;
       } 
+      if (!chapter.endVerse && searchChapterRange.endVerse < chapter.verse) {
+        return false;
+      }
       if (chapter.endVerse === 'ff') {
         return searchChapterRange.endVerse >= chapter.verse;
       } 
@@ -672,6 +675,9 @@ function chapterRangeContainedInChapter(chapter, searchChapterRange, strict=fals
     if (searchChapterRange.chapter === chapter.chapter) {
       if (!chapter.verse) {
         return true;
+      }
+      if (!chapter.endVerse && searchRangeChapter.startVerse > chapter.verse) {
+        return false;
       }
       if (chapter.endVerse === 'ff') {
         return true;
@@ -686,6 +692,13 @@ function chapterRangeContainedInChapter(chapter, searchChapterRange, strict=fals
 function chapterVerseRangeContainedInChapter (singleChapterRange, searchRange, strict=false) {
   if (searchRange.chapter === singleChapterRange.chapter) {
     if (singleChapterRange.verse) {
+      if (!singleChapterRange.endVerse) {
+        if (strict) return false; 
+        if (searchRange.endVerse < singleChapterRange.verse || searchRange.verse > singleChapterRange.verse) {
+          return false;
+        }
+        return true;
+      }
       if (singleChapterRange.endVerse === 'ff') {
         if (strict) {
           return singleChapterRange.verse <= searchRange.verse;
@@ -697,7 +710,7 @@ function chapterVerseRangeContainedInChapter (singleChapterRange, searchRange, s
           return singleChapterRange.verse <= searchRange.verse && searchRange.endVerse <= singleChapterRange.endVerse;
         } else {
           // Search range is completely before or completely after chapter range to search
-          if (searchRange.endVerse <= singleChapterRange.verse || searchRange.verse >= singleChapterRange.endVerse) {
+          if (searchRange.endVerse < singleChapterRange.verse || searchRange.verse > singleChapterRange.endVerse) {
             return false;
           } else return true;
         }
@@ -767,14 +780,12 @@ function chapterVerseRangeContainedInChapterRange (chapterRange, chapterSearchCh
         return false;
       }
     }
-    if (chapterSearchChunk.endChapter === chapterRange.chapter) {
-      if (!chapterRange.verse) {
-        return true;
-      }
+    if (chapterSearchChunk.chapter === chapterRange.chapter) {
       if (chapterSearchChunk.endVerse < chapterRange.verse) {
         return false;
       }
     }
+    if (chapterSearchChunk.en)
     return true;
   }
 }
