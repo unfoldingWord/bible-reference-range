@@ -676,8 +676,11 @@ function chapterRangeContainedInChapter(chapter, searchChapterRange, strict=fals
       if (!chapter.verse) {
         return true;
       }
-      if (!chapter.endVerse && searchRangeChapter.startVerse > chapter.verse) {
-        return false;
+      if (!chapter.endVerse) {
+        if (searchChapterRange.verse > chapter.verse) { 
+          return false;
+        }
+        return true;
       }
       if (chapter.endVerse === 'ff') {
         return true;
@@ -685,32 +688,33 @@ function chapterRangeContainedInChapter(chapter, searchChapterRange, strict=fals
       if (searchChapterRange.verse > chapter.endVerse) {
         return false;
       }
+      return true;
     } else return true;
   } 
 }
 
-function chapterVerseRangeContainedInChapter (singleChapterRange, searchRange, strict=false) {
-  if (searchRange.chapter === singleChapterRange.chapter) {
-    if (singleChapterRange.verse) {
-      if (!singleChapterRange.endVerse) {
+function chapterVerseRangeContainedInChapter (chapterVerseRange, searchRange, strict=false) {
+  if (searchRange.chapter === chapterVerseRange.chapter) {
+    if (chapterVerseRange.verse) {
+      if (!chapterVerseRange.endVerse) {
         if (strict) return false; 
-        if (searchRange.endVerse < singleChapterRange.verse || searchRange.verse > singleChapterRange.verse) {
+        if (searchRange.endVerse < chapterVerseRange.verse || searchRange.verse > chapterVerseRange.verse) {
           return false;
         }
         return true;
       }
-      if (singleChapterRange.endVerse === 'ff') {
+      if (chapterVerseRange.endVerse === 'ff') {
         if (strict) {
-          return singleChapterRange.verse <= searchRange.verse;
+          return chapterVerseRange.verse <= searchRange.verse;
         } else {
-          return searchRange.endVerse <= singleChapterRange.verse; 
+          return searchRange.endVerse >= chapterVerseRange.verse; 
         } 
       } else {
         if (strict) {
-          return singleChapterRange.verse <= searchRange.verse && searchRange.endVerse <= singleChapterRange.endVerse;
+          return chapterVerseRange.verse <= searchRange.verse && searchRange.endVerse <= chapterVerseRange.endVerse;
         } else {
           // Search range is completely before or completely after chapter range to search
-          if (searchRange.endVerse < singleChapterRange.verse || searchRange.verse > singleChapterRange.endVerse) {
+          if (searchRange.endVerse < chapterVerseRange.verse || searchRange.verse > chapterVerseRange.endVerse) {
             return false;
           } else return true;
         }
@@ -769,7 +773,7 @@ function chapterVerseRangeContainedInChapterRange (chapterRange, chapterSearchCh
     }
     return true;
   } else {
-    if (chapterSearchChunk.chapter > chapterRange.endChapter || chapterSearchChunk.endChapter < chapterRange.chapter) {
+    if (chapterSearchChunk.chapter > chapterRange.endChapter || chapterSearchChunk.chapter < chapterRange.chapter) {
       return false;
     }
     if (chapterSearchChunk.chapter === chapterRange.endChapter) {
@@ -781,63 +785,13 @@ function chapterVerseRangeContainedInChapterRange (chapterRange, chapterSearchCh
       }
     }
     if (chapterSearchChunk.chapter === chapterRange.chapter) {
+      if (!chapterRange.verse) {
+        return true;
+      }
       if (chapterSearchChunk.endVerse < chapterRange.verse) {
         return false;
       }
     }
-    if (chapterSearchChunk.en)
     return true;
   }
 }
-
-// // This function is only called if verseChunkToSearch AND searchChunk are ranges!
-// function chunkContainsVerseRange(verseChunkToSearch, searchChunk, strict=false) {
-//   if (!verseChunk.endChapter) {
-//     if (strict && searchChunk.endChapter) {
-//       return false;
-//     }
-//     // If strict, object MUST at most look like ({chapter, verse, endVerse})
-//     if (searchChunk.chapter === verseChunk.chapter) {
-//       if (verseChunk.verse) {
-//         if (verseChunk.endVerse === 'ff') {
-//           if (strict) {
-//             return verseChunk.verse <= searchChunk.verse;
-//           } else {
-//             return verseChunk.verse <= searchChunk.endVerse || !!searchChunk.endChapter
-//           }
-//         } else {
-//           if (strict) {
-//             return (verseChunk.verse <= searchChunk.verse && searchChunk.endVerse <= verseChunk.endVerse);
-//           } else {
-
-//           }
-//         }
-//       } else return true; // This should handle single chapters. This is good for strict mode too!
-//     } else return false;
-//   } else {
-//     if (verseChunk.chapter <= searchChapter && searchChapter <= verseChunk.endChapter) {
-//       if (verseChunk.verse) {
-//         if (searchChapter === verseChunk.chapter) {
-//           return searchVerse >= verseChunk.verse; 
-//         } else if (searchChapter === verseChunk.endChapter) {
-//           return searchVerse <= verseChunk.endVerse;
-//         } else return true;
-//       } else return true; // This should handle a chapter range!
-//     } else return false;
-//   }
-// }
-
-/* Brainstorming
-
-given: {startChapter, endChapter, startVerse, endVerse}
-
-
-3:2, 3:1-3
-
-STRICT
-  Check to make sure that every verse from startChapter, start Verse -> end Chapter, end Verse is contained
- 
-LOOSE
-  Return true if ANY verse within shartChapter, startVerse -> endChapter, endVerse is contained
-
-  */
