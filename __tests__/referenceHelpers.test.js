@@ -3,10 +3,10 @@ import deepEqual from 'deep-equal';
 import {
     cleanupReference,
     convertReferenceChunksToString,
-    doesReferenceContain,
     getVerses,
     parseReferenceToList,
 } from '../src/helpers/referenceHelpers';
+import {doesReferenceContain} from '../src/helpers/doesReferenceContain';
 
 const tests = [
   { ref: '1:3ff', expectConverted: '1:3ff', expectedCleaned: {chapter: 1, verse: '3ff', verseStr: '3ff'}, expectParsed: [{chapter: 1, verse: 3, endVerse: 'ff'}]},

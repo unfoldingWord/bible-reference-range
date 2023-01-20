@@ -16,7 +16,7 @@ const RANGE_SEPARATORS = [
  * takes a reference and splits into individual verses or verse spans.
  * @param {string} ref - reference in format such as:
  *   “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @return {[{chapter, verse, endChapter, endVerse}]}
+ * @return {Object}  The Verse Chunk returned
  */
  export function parseReferenceToList(ref) {
     try {
@@ -113,11 +113,16 @@ const RANGE_SEPARATORS = [
   }
 
   /**
+   * @private 
    * If valid chapter reference, add chapter object to verse chunks list
    * 
-   * @param {[{chapter, verse, endChapter, endVerse}]} verseChunks 
-   * @param {string} chapterRef 
-   * @returns {[{chapter, verse, endChapter, endVerse}]} - Array copy with new chapter reference if valid, or input array if not
+   * @param {Object} verseChunks - The reference data
+   * @param {Integer} verseChunks.chapter - Starting chapter of the reference
+   * @param {Integer} verseChunks.verse - Starting verse of the reference
+   * @param {Integer} verseChunks.endChapter - Ending chapter of the reference
+   * @param {Integer} verseChunks.endVerse - Ending verse of the reference
+   * @param {string} chapterRef - Chapter reference to add to verse chunks list
+   * @returns {Object} - Array copy with new chapter reference if valid, or input array if not
    */
   function addChapterReference(verseChunks, chapterRef) {
     const isRange = getRangeSeparator(chapterRef) >= 0
@@ -140,7 +145,7 @@ const RANGE_SEPARATORS = [
   }
   
   /**
-   * conver array of Reference chunks to reference string
+   * convert array of Reference chunks to reference string
    * @param {array} chunks
    * @return {string}
    */
@@ -250,7 +255,7 @@ const RANGE_SEPARATORS = [
   /**
  * splits verse list into individual verses
  * @param {string} verseStr
- * @return {[number]}
+ * @return {array} - Array of individual verse Integers
  */
 export function getVerseList(verseStr) {
     const verses = verseStr.toString().split(',');
@@ -380,6 +385,7 @@ function getRange(ref) {
   }
   
   /**
+   * @private 
    * parse ref to see if chapter:verse
    * @param ref
    * @returns {{chapter: string, foundChapterVerse: boolean, verse: string}}
@@ -443,6 +449,7 @@ export function toInt(value) {
   }
   
   /**
+   * @private 
    * look for possible dash and hyphen character to see if versePart is a verse range
    * @param {string} versePart
    * @return {number} position of dash or hyphen found, or -1 if not found
@@ -459,7 +466,8 @@ export function toInt(value) {
   }
 
 /**
- * check if verse is within a verse range (e.g. 2-4)
+ * @private 
+   * check if verse is within a verse range (e.g. 2-4)
  * @param {object} chapterData - indexed by verse ref
  * @param {number} verse - verse to match
  * @param {number} chapter - current chapter
@@ -493,7 +501,7 @@ function findVerseInVerseRange(chapterData, verse, chapter) {
  * finds all verses from bookData contained in ref, then returns array of references and verse data
  * @param {object} bookData - indexed by chapter and then verse ref
  * @param {string} ref - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @returns {[{chapter, verse, verseData}]}
+ * @returns {Object[]} - Array of objects with chapter, verse, verseData values
  */
 export function getVerses(bookData, ref) {
   const verses = [];

@@ -7,11 +7,12 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
+    "docs": "yarn jsdoc -c .jsdoc.json",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepublishOnly": "rm -rf ./dist && babel ./src --out-dir ./dist -s inline",
-    "postpublish": "git tag v$npm_package_version && git push origin v$npm_package_version"
+    "xpostpublish": "git tag v$npm_package_version && git push origin v$npm_package_version"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.10",
@@ -23,11 +24,12 @@
     "@babel/preset-react": "^7.12.10",
     "babel-jest": "^27.3.1",
     "babel-loader": "^8.2.2",
-    "jest": "^27.3.1",
-    "prettier": "^2.1.2",
     "deep-equal": "^2.0.5",
+    "docdash": "^2.0.1",
+    "jest": "^27.3.1",
+    "jsdoc": "^4.0.0",
+    "prettier": "^2.1.2",
     "webpack": "4.44.0"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
