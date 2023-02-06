@@ -9,32 +9,33 @@ import { parseReferenceToList } from './referenceHelpers'
  * @param {string} strict - flag to determine if entire range of refSearchTerm should be contained in refToSearch. Default false
  * @returns {boolean} - true if refSearchTerm exists within refToSearch, false if otherwise
  */
-export function doesReferenceContain(
-  refToSearch,
-  refSearchTerm,
-  strict = false
-) {
-  const verseChunksToSearch = parseReferenceToList(refToSearch)
-  const refSearchChunk = parseReferenceToList(refSearchTerm)[0]
+export function doesReferenceContain(refToSearch, refSearchTerm, strict = false) {
+  const verseChunksToSearch = parseReferenceToList(refToSearch);
+  const refSearchChunks = parseReferenceToList(refSearchTerm);
 
-  for (const verseChunk of verseChunksToSearch) {
-    if (refSearchChunk.endVerse) {
-      if (chunkContainsVerseRange(verseChunk, refSearchChunk, strict)) {
-        return true
+  for (const searchChunk of refSearchChunks) {
+    if (doChunksContainChunk(verseChunksToSearch, searchChunk, strict)) {
+      if (!strict) return true;
+    } else {
+      if (strict) return false;
+    }
+  }
+  return strict ? true : false; 
+}
+
+function doChunksContainChunk(verseChunks, searchChunk, strict) {
+  for (const verseChunk of verseChunks) {
+    if (searchChunk.endVerse) {
+      if (chunkContainsVerseRange(verseChunk, searchChunk, strict)) {
+        return true;
       }
     } else {
-      if (
-        chunkContainsVerse(
-          verseChunk,
-          refSearchChunk.chapter,
-          refSearchChunk.verse
-        )
-      ) {
-        return true
+      if (chunkContainsVerse( verseChunk,searchChunk.chapter,searchChunk.verse)) {
+        return true;
       }
     }
   }
-  return false
+  return false; 
 }
 
 /**

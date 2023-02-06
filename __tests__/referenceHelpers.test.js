@@ -129,6 +129,7 @@ const searchReferenceTests = [
   { ref: '1:1-2;3-4', containedRef: '1:1', nonContainedRef: '1:3', containedRangeLoose: '3:999-5:1', containedRangeStrict: '3:22-4:8', nonContainedRangeLoose: '1:3-4', nonContainedRangeStrict: '3:999-5:1'},
   { ref: '1:2ff', containedRef: '1:2', nonContainedRef: '2:5', containedRangeLoose: '1:1-9999', containedRangeStrict: '1:2-9999', nonContainedRangeLoose: '2:1-3:12', nonContainedRangeStrict: '1:1-99' },
   { ref: '1:2ff', containedRef: '1:9999', nonContainedRef: '1:1', containedRangeLoose: '1:5-3:12', containedRangeStrict: '1:5-9', nonContainedRangeLoose: '2:1-3', nonContainedRangeStrict: '1:1-99' },
+  { ref: '3:1-10', containedRef: '3:2,6', nonContainedRef: '2:5', containedRangeLoose: '3:1-23,999', containedRangeStrict: '3:2-8,10', nonContainedRangeLoose: '2:1-12, 22', nonContainedRangeStrict: '3:1,11' },
 ];
 
 describe('Test doesReferenceContain', () => {
