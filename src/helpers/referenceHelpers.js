@@ -16,7 +16,7 @@ const RANGE_SEPARATORS = [
  * takes a reference and splits into individual verses or verse spans.
  * @param {string} ref - reference in format such as:
  *   “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @return {[{chapter, verse, endChapter, endVerse}]}
+ * @return {verseChunk[]}  The Verse Chunk returned
  */
  export function parseReferenceToList(ref) {
     try {
@@ -25,11 +25,20 @@ const RANGE_SEPARATORS = [
       let lastChapter = 1;
   
       for (const refChunk of refChunks) {
+        // 1:1-23,32 ; 1-3
         if (!refChunk) {
           continue;
         }
+
+        // If no semicolon (no verses), reference is either a chapter, chapter range, or invalid
+        if (!refChunk.includes(':')) {
+          verseChunks = addChapterReference(verseChunks, refChunk)
+          continue;
+        }
+      
   
         const verseParts = refChunk.split(',');
+        // get the object from the first chunk before the comma
         let {
           chapter,
           verse,
@@ -54,6 +63,7 @@ const RANGE_SEPARATORS = [
           lastChapter = range.endChapter;
         }
   
+        // get the object from the rest of the chunks after the comma
         for (let i = 1; i < verseParts.length; i++) {
           const versePart = verseParts[i];
   
@@ -101,9 +111,37 @@ const RANGE_SEPARATORS = [
     }
     return null;
   }
+
+  /**
+   * @private 
+   * If valid chapter reference, add chapter object to verse chunks list
+   * 
+   * @param {verseChunk[]} verseChunks - Array of verse chunks
+   * @param {string} chapterRef - Chapter reference to add to verse chunks
+   * @returns {verseChunks[]} - Array copy with new chapter reference if valid, or input array if not
+   */
+  function addChapterReference(verseChunks, chapterRef) {
+    const isRange = getRangeSeparator(chapterRef) >= 0
+    
+    if (isRange) {
+      const pos = getRangeSeparator(chapterRef);
+      const foundRange = pos >= 0;
+
+      if (foundRange) {
+        const start = toIntIfValid(chapterRef.substring(0, pos));
+        const end = toIntIfValid(chapterRef.substring(pos + 1));
+
+        return [...verseChunks, {chapter: start, endChapter: end}]
+      } 
+    } else {
+      return [...verseChunks, {chapter: toIntIfValid(chapterRef)}]
+    }
+
+    return verseChunks
+  }
   
   /**
-   * conver array of Reference chunks to reference string
+   * convert array of Reference chunks to reference string
    * @param {array} chunks
    * @return {string}
    */
@@ -120,24 +158,36 @@ const RANGE_SEPARATORS = [
             if (result) {
               result += ';';
             }
-            result += `${chunk.chapter}:${chunk.verse}-${chunk.endChapter}:${chunk.endVerse}`;
+            // Check for chapter range without verses
+            if (!chunk.verse) {
+              result += `${chunk.chapter}-${chunk.endChapter}`
+            } else {
+              result += `${chunk.chapter}:${chunk.verse}-${chunk.endChapter}:${chunk.endVerse}`;
+            }
             lastChapter = chunk.endChapter;
           } else {
             if ((lastChapter !== chunk.chapter) || (lastChunk && lastChunk.endChapter)) {
               if (result) {
                 result += ';';
               }
-              result += `${chunk.chapter}:`;
+              result += `${chunk.chapter}` + (chunk.verse ? ':' : '');
               lastChapter = chunk.chapter;
             } else { // same chapter
               if (result) {
                 result += ',';
               }
             }
+            // check for solo chapter
+            if (chunk.verse) {
             result += `${chunk.verse}`;
+            }
   
             if (chunk.endVerse) {
-              result += `-${chunk.endVerse}`;
+              if (chunk.endVerse === 'ff') {
+                result += chunk.endVerse;
+              } else {
+                result += `-${chunk.endVerse}`
+              }
             }
           }
           lastChunk = chunk;
@@ -201,7 +251,7 @@ const RANGE_SEPARATORS = [
   /**
  * splits verse list into individual verses
  * @param {string} verseStr
- * @return {[number]}
+ * @return {array} - Array of individual verse Integers
  */
 export function getVerseList(verseStr) {
     const verses = verseStr.toString().split(',');
@@ -316,6 +366,14 @@ function getRange(ref) {
             endVerse: toIntIfValid(endStr),
           };
         }
+      } else if (ref.toLowerCase().includes('ff')) {
+        const followingPos = ref.indexOf('ff')
+        const start = toIntIfValid(ref.substring(0, followingPos));
+
+        return {
+          verse: start,
+          endVerse: 'ff'
+        }
       }
     }
   
@@ -323,6 +381,7 @@ function getRange(ref) {
   }
   
   /**
+   * @private 
    * parse ref to see if chapter:verse
    * @param ref
    * @returns {{chapter: string, foundChapterVerse: boolean, verse: string}}
@@ -370,6 +429,10 @@ export function toInt(value) {
       if (pos >= 0) {
         return value;
       }
+
+      if (value.includes('ff')) {
+        return value;
+      }
   
       const intValue = toInt(value);
   
@@ -382,6 +445,7 @@ export function toInt(value) {
   }
   
   /**
+   * @private 
    * look for possible dash and hyphen character to see if versePart is a verse range
    * @param {string} versePart
    * @return {number} position of dash or hyphen found, or -1 if not found
@@ -398,7 +462,8 @@ export function toInt(value) {
   }
 
 /**
- * check if verse is within a verse range (e.g. 2-4)
+ * @private 
+   * check if verse is within a verse range (e.g. 2-4)
  * @param {object} chapterData - indexed by verse ref
  * @param {number} verse - verse to match
  * @param {number} chapter - current chapter
@@ -432,7 +497,7 @@ function findVerseInVerseRange(chapterData, verse, chapter) {
  * finds all verses from bookData contained in ref, then returns array of references and verse data
  * @param {object} bookData - indexed by chapter and then verse ref
  * @param {string} ref - formats such as “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @returns {[{chapter, verse, verseData}]}
+ * @returns {Object[]} - Array of objects with chapter, verse, verseData values
  */
 export function getVerses(bookData, ref) {
   const verses = [];
@@ -499,3 +564,11 @@ export function getVerses(bookData, ref) {
 
   return verses;
 }
+
+/**
+ * @typedef {Object} verseChunk Object representing a chapter reference or reference range
+ * @property {number} verseChunk.chapter
+ * @property {number} verseChunk.verse
+ * @property {number} verseChunk.endChapter
+ * @property {number} verseChunk.endVerse
+ */
