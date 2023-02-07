@@ -16,7 +16,7 @@ const RANGE_SEPARATORS = [
  * takes a reference and splits into individual verses or verse spans.
  * @param {string} ref - reference in format such as:
  *   “2:4-5”, “2:3a”, “2-3b-4a”, “2:7,12”, “7:11-8:2”, "6:15-16;7:2"
- * @return {Object}  The Verse Chunk returned
+ * @return {verseChunk[]}  The Verse Chunk returned
  */
  export function parseReferenceToList(ref) {
     try {
@@ -116,13 +116,9 @@ const RANGE_SEPARATORS = [
    * @private 
    * If valid chapter reference, add chapter object to verse chunks list
    * 
-   * @param {Object} verseChunks - The reference data
-   * @param {Integer} verseChunks.chapter - Starting chapter of the reference
-   * @param {Integer} verseChunks.verse - Starting verse of the reference
-   * @param {Integer} verseChunks.endChapter - Ending chapter of the reference
-   * @param {Integer} verseChunks.endVerse - Ending verse of the reference
-   * @param {string} chapterRef - Chapter reference to add to verse chunks list
-   * @returns {Object} - Array copy with new chapter reference if valid, or input array if not
+   * @param {verseChunk[]} verseChunks - Array of verse chunks
+   * @param {string} chapterRef - Chapter reference to add to verse chunks
+   * @returns {verseChunks[]} - Array copy with new chapter reference if valid, or input array if not
    */
   function addChapterReference(verseChunks, chapterRef) {
     const isRange = getRangeSeparator(chapterRef) >= 0
@@ -568,3 +564,11 @@ export function getVerses(bookData, ref) {
 
   return verses;
 }
+
+/**
+ * @typedef {Object} verseChunk Object representing a chapter reference or reference range
+ * @property {number} verseChunk.chapter
+ * @property {number} verseChunk.verse
+ * @property {number} verseChunk.endChapter
+ * @property {number} verseChunk.endVerse
+ */
