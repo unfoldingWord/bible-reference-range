@@ -3,7 +3,7 @@
   "version": "1.1.1",
   "main": "dist",
   "types": "index.d.ts",
-  "repository": "https://github.com/unfoldingWord/translation-helps-rcl.git",
+  "repository": "https://github.com/unfoldingWord/bible-reference-range",
   "author": "mannycolon <colonmanuel7@gmail.com>",
   "license": "MIT",
   "scripts": {
